@@ -69,8 +69,8 @@ if os.path.isfile(file_path):
     os.remove(file_path)
 print(f"The file {args.filename} was removed from {dest_directory} successfully.")
 
-
-
+# Move to the original directory
+os.chdir(original_directory)
 
 # Simulate the Verilog code
 vvp_command = f"vvp {filename_without_ext}"
