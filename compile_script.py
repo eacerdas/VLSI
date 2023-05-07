@@ -3,7 +3,14 @@ import os
 import shutil
 import subprocess
 
+# Set the original directory
 original_directory = os.getcwd()
+
+# Set the bin directory
+bin_directory = "C:/iverilog/bin"
+
+# Set the gtkwave directory
+gtkwave_directory = "C:/iverilog/gtkwave"
 
 # Parse command line arguments
 parser = argparse.ArgumentParser(description="Copy a verilog file to the iverilog bin directory.")
@@ -17,9 +24,6 @@ file_path = os.path.abspath(args.filename)
 if not os.path.isfile(file_path):
     print(f"The file {file_path} does not exist.")
     exit()
-
-# Set the destination directory
-bin_directory = "C:/iverilog/bin"
 
 os.system('cls' if os.name == 'nt' else 'clear')
 
@@ -80,7 +84,7 @@ if subprocess.call(vvp_command, shell=True) != 0:
     exit()
 
 # Change to the gtkwave directory
-os.chdir("C:/iverilog/gtkwave")
+os.chdir(gtkwave_directory)
 
 # Find the VCD file in the destination directory
 vcd_file = None
