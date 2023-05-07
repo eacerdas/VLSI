@@ -19,30 +19,30 @@ if not os.path.isfile(file_path):
     exit()
 
 # Set the destination directory
-dest_directory = "C:/iverilog/bin"
+bin_directory = "C:/iverilog/bin"
 
 os.system('cls' if os.name == 'nt' else 'clear')
 
 # Check if file already exists in destination directory
 overwrite_flag = 0
-if os.path.isfile(os.path.join(dest_directory, args.filename)):
+if os.path.isfile(os.path.join(bin_directory, args.filename)):
     # If it exists, delete it first to overwrite it
-    os.remove(os.path.join(dest_directory, args.filename))
+    os.remove(os.path.join(bin_directory, args.filename))
     overwrite_flag = 1
 
 # Copy the file to the destination directory
-shutil.copy(file_path, dest_directory)
+shutil.copy(file_path, bin_directory)
 
 # Print success message
 if overwrite_flag == 0:
-    print(f"The file {args.filename} was copied to {dest_directory} successfully.")
+    print(f"The file {args.filename} was copied to {bin_directory} successfully.")
 else:
-    print(f"The file {args.filename} was overwritten in {dest_directory} successfully.")
+    print(f"The file {args.filename} was overwritten in {bin_directory} successfully.")
 
 ###################### runnning iverilog for the file ########################
 
 # Change to the destination directory
-os.chdir(dest_directory)
+os.chdir(bin_directory)
 
 # Eliminates de .v extension to the name to use it as output name
 filename_without_ext = os.path.splitext(args.filename)[0]
@@ -55,19 +55,19 @@ if subprocess.call(iverilog_command, shell=True) != 0:
     exit()
 
 # Move the output file to the original directory and remove the files from the destination directory
-output_file_path = os.path.join(dest_directory, filename_without_ext)
+output_file_path = os.path.join(bin_directory, filename_without_ext)
 if os.path.isfile(output_file_path):
     shutil.move(output_file_path, os.path.join(original_directory, filename_without_ext))
 print(f"Moved output from bin to {os.path.join(original_directory)} \n")
 
-output_file_path = os.path.join(dest_directory, filename_without_ext)
+output_file_path = os.path.join(bin_directory, filename_without_ext)
 if os.path.isfile(output_file_path):
     os.remove(output_file_path)
 
-file_path = os.path.join(dest_directory, args.filename)
+file_path = os.path.join(bin_directory, args.filename)
 if os.path.isfile(file_path):
     os.remove(file_path)
-print(f"The file {args.filename} was removed from {dest_directory} successfully.")
+print(f"The file {args.filename} was removed from {bin_directory} successfully.")
 
 # Move to the original directory
 os.chdir(original_directory)
@@ -84,9 +84,9 @@ os.chdir("C:/iverilog/gtkwave")
 
 # Find the VCD file in the destination directory
 vcd_file = None
-for file in os.listdir(dest_directory):
+for file in os.listdir(bin_directory):
     if file.endswith(".vcd"):
-        vcd_file = os.path.join(dest_directory, file)
+        vcd_file = os.path.join(bin_directory, file)
         break
 
 if vcd_file is None:
