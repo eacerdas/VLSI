@@ -10,7 +10,7 @@ original_directory = os.getcwd()
 verilog_bin_directory = "C:/iverilog/bin"
 
 # Set the gtkwave directory
-gtkwave_bin_directory = "C:/iverilog/gtkwave"
+gtkwave_bin_directory = "C:/iverilog/gtkwave/bin"
 
 # Parse command line arguments
 parser = argparse.ArgumentParser(description="Copy a verilog file to the iverilog bin directory.")
@@ -58,6 +58,13 @@ if subprocess.call(iverilog_command, shell=True) != 0:
     print("Error: Failed to compile Verilog code.")
     exit()
 
+# Simulate the Verilog code
+vvp_command = f"vvp {filename_without_ext}"
+print(f"Running VVP simulation with command: {vvp_command} \n")
+if subprocess.call(vvp_command, shell=True) != 0:
+    print("Error: Failed to simulate Verilog code.")
+    exit()
+
 # Move the output file to the original directory and remove the files from the destination directory
 output_file_path = os.path.join(verilog_bin_directory, filename_without_ext)
 if os.path.isfile(output_file_path):
@@ -73,20 +80,9 @@ if os.path.isfile(file_path):
     os.remove(file_path)
 print(f"The file {args.filename} was removed from {verilog_bin_directory} successfully.")
 
-# Move to the original directory
-os.chdir(original_directory)
+# Move the .vcd to the original directory
 
-# Simulate the Verilog code
-vvp_command = f"vvp {filename_without_ext}"
-print(f"Running VVP simulation with command: {vvp_command} \n")
-if subprocess.call(vvp_command, shell=True) != 0:
-    print("Error: Failed to simulate Verilog code.")
-    exit()
-
-# Change to the gtkwave directory
-os.chdir(gtkwave_bin_directory)
-
-# Find the VCD file in the destination directory
+# Find the generated VCD file in the original directory
 vcd_file = None
 for file in os.listdir(verilog_bin_directory):
     if file.endswith(".vcd"):
@@ -94,11 +90,24 @@ for file in os.listdir(verilog_bin_directory):
         break
 
 if vcd_file is None:
-    print("Error: No VCD file found in destination directory.")
+    print(f"Error: No VCD file found in {verilog_bin_directory} directory.")
     exit()
 
+# Copy the VCD file to the original directory
+shutil.copy(vcd_file, original_directory)
+
+# Remove the VCD file from the destination directory
+os.remove(vcd_file)
+
+# Print success message
+print(f"The VCD file {os.path.basename(vcd_file)} was moved to {original_directory}.")
+
+# Change to the gtkwave directory
+os.chdir(gtkwave_bin_directory)
+
 # Run gtkwave with the VCD file
-gtkwave_command = f"gtkwave.exe {vcd_file}"
+vcd_abs_path = os.path.abspath(os.path.join(original_directory, os.path.basename(vcd_file)))
+gtkwave_command = f"gtkwave.exe {vcd_abs_path}"
 print(f"\n\nRunning GTKWave with command: {gtkwave_command}")
 if subprocess.call(gtkwave_command, shell=True) != 0:
     print("Error: Failed to run GTKWave.")
