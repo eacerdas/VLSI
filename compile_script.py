@@ -12,6 +12,9 @@ verilog_bin_directory = "C:/iverilog/bin"
 # Set the gtkwave directory
 gtkwave_bin_directory = "C:/iverilog/gtkwave/bin"
 
+
+##### MOVING .v TO verilog\bin #####
+
 # Parse command line arguments
 parser = argparse.ArgumentParser(description="Copy a verilog file to the iverilog bin directory.")
 parser.add_argument("filename", help="name of the file to copy")
@@ -39,11 +42,12 @@ shutil.copy(file_path, verilog_bin_directory)
 
 # Print success message
 if overwrite_flag == 0:
-    print(f"The file {args.filename} was copied to {verilog_bin_directory} successfully.")
+    print(f"Copied \"{args.filename}\" to {verilog_bin_directory} in order to compile it. \n")
 else:
-    print(f"The file {args.filename} was overwritten in {verilog_bin_directory} successfully.")
+    print(f"Copied (overwritten) \"{args.filename}\" on {verilog_bin_directory} in order to compile it. \n")
 
-###################### runnning iverilog for the file ########################
+
+##### COMPILING VERILOG #####
 
 # Change to the destination directory
 os.chdir(verilog_bin_directory)
@@ -58,6 +62,9 @@ if subprocess.call(iverilog_command, shell=True) != 0:
     print("Error: Failed to compile Verilog code.")
     exit()
 
+
+##### VVP #####
+
 # Simulate the Verilog code
 vvp_command = f"vvp {filename_without_ext}"
 print(f"Running VVP simulation with command: {vvp_command} \n")
@@ -65,11 +72,14 @@ if subprocess.call(vvp_command, shell=True) != 0:
     print("Error: Failed to simulate Verilog code.")
     exit()
 
+
+##### MOVING AND REMOVING FILES #####
+
 # Move the output file to the original directory and remove the files from the destination directory
 output_file_path = os.path.join(verilog_bin_directory, filename_without_ext)
 if os.path.isfile(output_file_path):
     shutil.move(output_file_path, os.path.join(original_directory, filename_without_ext))
-print(f"Moved output from bin to {os.path.join(original_directory)} \n")
+print(f"Moved   \"{filename_without_ext}\" from bin to {os.path.join(original_directory)} successfully.")
 
 output_file_path = os.path.join(verilog_bin_directory, filename_without_ext)
 if os.path.isfile(output_file_path):
@@ -78,11 +88,9 @@ if os.path.isfile(output_file_path):
 file_path = os.path.join(verilog_bin_directory, args.filename)
 if os.path.isfile(file_path):
     os.remove(file_path)
-print(f"The file {args.filename} was removed from {verilog_bin_directory} successfully.")
+print(f"Removed \"{args.filename}\" from {verilog_bin_directory}. It is no longer needed.")
 
-# Move the .vcd to the original directory
-
-# Find the generated VCD file in the original directory
+# Find the generated VCD file
 vcd_file = None
 for file in os.listdir(verilog_bin_directory):
     if file.endswith(".vcd"):
@@ -100,7 +108,10 @@ shutil.copy(vcd_file, original_directory)
 os.remove(vcd_file)
 
 # Print success message
-print(f"The VCD file {os.path.basename(vcd_file)} was moved to {original_directory}.")
+print(f"Moved   \"{os.path.basename(vcd_file)}\" to {original_directory} successfully.")
+
+
+##### RUNNING GTKWAVE #####
 
 # Change to the gtkwave directory
 os.chdir(gtkwave_bin_directory)
