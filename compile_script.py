@@ -13,7 +13,7 @@ verilog_bin_directory = "C:/iverilog/bin"
 gtkwave_bin_directory = "C:/iverilog/gtkwave/bin"
 
 
-##### MOVING .v TO verilog\bin #####
+##### MOVING .v TO iverilog\bin #####
 
 # Parse command line arguments
 parser = argparse.ArgumentParser(description="Copy a verilog file to the iverilog bin directory.")
@@ -101,10 +101,8 @@ if vcd_file is None:
     print(f"Error: No VCD file found in {verilog_bin_directory} directory.")
     exit()
 
-# Copy the VCD file to the original directory
+# Moving the VCD file to the original directory
 shutil.copy(vcd_file, original_directory)
-
-# Remove the VCD file from the destination directory
 os.remove(vcd_file)
 
 # Print success message
