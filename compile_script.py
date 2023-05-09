@@ -75,11 +75,14 @@ if subprocess.call(vvp_command, shell=True) != 0:
 
 ##### MOVING AND REMOVING FILES #####
 
-# Move the output file to the original directory and remove the files from the destination directory
+# Move the output file to a 'bin' directory inside the original directory and remove the files from the destination directory
+bin_dir_path = os.path.join(original_directory, "bin")
+if not os.path.exists(bin_dir_path):
+    os.makedirs(bin_dir_path)
 output_file_path = os.path.join(verilog_bin_directory, filename_without_ext)
 if os.path.isfile(output_file_path):
-    shutil.move(output_file_path, os.path.join(original_directory, filename_without_ext))
-print(f"Moved   \"{filename_without_ext}\" from bin to {os.path.join(original_directory)} successfully.")
+    shutil.move(output_file_path, os.path.join(bin_dir_path, filename_without_ext))
+print(f"Moved   \"{filename_without_ext}\" to {os.path.join(bin_dir_path)} successfully.")
 
 output_file_path = os.path.join(verilog_bin_directory, filename_without_ext)
 if os.path.isfile(output_file_path):
