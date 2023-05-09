@@ -34,6 +34,12 @@ module estimulo_1_bit;
         $finish;
     end
 
+    // Generating the vcd
+    initial begin
+        $dumpfile("substractor_1bit1.vcd");
+        $dumpvars(0, estimulo_1_bit);
+    end
+
 endmodule
 
 module r_c_8_bit_subtractor(x, y, z, d, b);
@@ -88,6 +94,12 @@ module estimulo_8_bit;
         X = 8'b11111111; Y = 8'b11111111; Z = 1; #5;
 
         $finish;
+    end
+
+    // Generating the vcd
+    initial begin
+        $dumpfile("substractor_8bits.vcd");
+        $dumpvars(0, estimulo_8_bit);
     end
 
 endmodule
