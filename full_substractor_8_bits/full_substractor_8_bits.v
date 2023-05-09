@@ -35,7 +35,7 @@ module estimulo_1_bit;
 
     // Generating the vcd
     initial begin
-        $dumpfile("substractor_1bit1.vcd");
+        $dumpfile("substractor_1bit.vcd");
         $dumpvars(0, estimulo_1_bit);
     end
 
