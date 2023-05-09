@@ -6,5 +6,5 @@ if not exist "%script_path%compile_script.py" (
   echo Please make sure the script is present and try again.
 ) else (
   for /f %%i in ('dir /b *.v') do set filename=%%i
-  cmd /k python "%script_path%compile_script.py" %filename%
 )
+cmd /k python "%script_path%compile_script.py" %filename%
