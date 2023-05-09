@@ -6,3 +6,6 @@
 
 # Except .v files
 !*.gitignore
+
+# Except .v files
+!*.py
