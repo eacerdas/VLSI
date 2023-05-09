@@ -28,7 +28,7 @@ if not os.path.isfile(file_path):
     print(f"The file {file_path} does not exist.")
     exit()
 
-os.system('cls' if os.name == 'nt' else 'clear')
+#os.system('cls' if os.name == 'nt' else 'clear') # not gonna use this for now
 
 # Check if file already exists in destination directory
 overwrite_flag = 0
@@ -97,20 +97,18 @@ print(f"Removed \"{args.filename}\" from {verilog_bin_directory}. It is no longe
 vcd_file = None
 for file in os.listdir(verilog_bin_directory):
     if file.endswith(".vcd"):
-        vcd_file = os.path.join(verilog_bin_directory, file)
+        vcd_file = file
         break
 
 if vcd_file is None:
     print(f"Error: No VCD file found in {verilog_bin_directory} directory.")
     exit()
 
-# Moving the VCD file to the original directory
-shutil.copy(vcd_file, original_directory)
-os.remove(vcd_file)
-
-# Print success message
-print(f"Moved   \"{os.path.basename(vcd_file)}\" to {original_directory} successfully.")
-
+# Move .vcd to to a 'bin' directory inside the original directory
+vcd_file_path = os.path.join(verilog_bin_directory, vcd_file)
+if os.path.isfile(vcd_file_path):
+    shutil.move(vcd_file_path, os.path.join(original_directory, "bin", os.path.basename(vcd_file)))
+    print(f"Moved \"{vcd_file}\" to {os.path.join(original_directory, 'bin')} successfully.")
 
 ##### RUNNING GTKWAVE #####
 
@@ -118,7 +116,7 @@ print(f"Moved   \"{os.path.basename(vcd_file)}\" to {original_directory} success
 os.chdir(gtkwave_bin_directory)
 
 # Run gtkwave with the VCD file
-vcd_abs_path = os.path.abspath(os.path.join(original_directory, os.path.basename(vcd_file)))
+vcd_abs_path = os.path.abspath(os.path.join(bin_dir_path, os.path.basename(vcd_file)))
 gtkwave_command = f"gtkwave.exe {vcd_abs_path}"
 print(f"\n\nRunning GTKWave with command: {gtkwave_command}")
 if subprocess.call(gtkwave_command, shell=True) != 0:
