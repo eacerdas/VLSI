@@ -9,3 +9,6 @@
 
 # Except .v files
 !*.py
+
+# Except .bat files
+!*.bat
