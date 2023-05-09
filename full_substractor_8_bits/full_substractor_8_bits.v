@@ -3,46 +3,25 @@ module r_c_1_bit (x,y,z,d,b);
     input x, y, z;
     output d, b;
 
-    // Internal Nets
-    wire x_not;
-    wire y_not;
-    wire z_not;
-    wire xy_and;
-    wire xz_and;
-    wire yz_and;
-    wire not_xy_and;
-    wire not_xz_and;
-
-    // Data flow
-    assign x_not = ~x;
-    assign y_not = ~y;
-    assign z_not = ~z;
-    assign xy_and = x & y;
-    assign xz_and = x & z;
-    assign yz_and = y & z;
-    assign not_xy_and = ~xy_and;
-    assign not_xz_and = ~xz_and;
-
-    assign d = (x_not & y_not & z) | (x_not & y & z_not) | (x & y_not & z_not) | (x & y & z);
-    assign b = (x_not & y) | (x_not & z) | (y & z);
-
+    //Data flow
+    assign d = (~x & ~y & z) | (~x & y & ~z) | (x & ~y & ~z) | (x & y & z);
+    assign b = (~x & y) | (~x & z) | (y & z);
 endmodule
 
 module estimulo_1_bit;
-  
     // Inputs
     reg X, Y, Z;
-    
     // Outputs
     wire D, B;
 
-    r_c_1_bit my_substractor (X, Y, Z, D, B);
+    // Instance of 1 bit substractor
+    r_c_1_bit substractor_1bit (X, Y, Z, D, B);
 
     initial begin
         $display("x y z | D B");
         $monitor($time, ": X=%b, Y=%b, Z=%b, --- PRESTAMO=%b,RESTA=%b\n",X,Y,Z,B,D);
 
-        // Combinaciones de entradas
+        // Stimulus inputs
         X = 0; Y = 0; Z = 0; #5;
         X = 0; Y = 0; Z = 1; #5;
         X = 0; Y = 1; Z = 0; #5;
@@ -61,7 +40,6 @@ module r_c_8_bit_subtractor(x, y, z, d, b);
   // Inputs
   input [7:0] x, y;
   input z;
-
   // Outputs
   output [7:0] d;
   output b;
@@ -82,6 +60,7 @@ module r_c_8_bit_subtractor(x, y, z, d, b);
 
   // Output connections
   assign d = d_int;
+  assign b = b_int[6];
 
 endmodule
 
@@ -95,21 +74,21 @@ module estimulo_8_bit;
     wire [7:0] D;
     wire B;
 
-    r_c_8_bit_subtractor my_subtractor (X, Y, Z, D, B);
+    r_c_8_bit_subtractor substractor_8bits (X, Y, Z, D, B);
 
     initial begin
         $display("X Y Z | D B");
-        $monitor($time, ": X=%b, Y=%b, Z=%b, --- B=%b, D=%b\n", X, Y, Z, B, D);
+        $monitor($time, ": X=%b, Y=%b, Z=%b, --- PRESTAMO=%b,RESTA=%b\n",X,Y,Z,B,D);
 
         // Combinaciones de entradas
         X = 8'b00000000; Y = 8'b00000000; Z = 0; #5;
-        X = 8'b00000000; Y = 8'b00000001; Z = 0; #5;
-        X = 8'b00000001; Y = 8'b00000000; Z = 0; #5;
-        X = 8'b00000001; Y = 8'b00000001; Z = 0; #5;
+        X = 8'b00000000; Y = 8'b11111111; Z = 0; #5;
+        X = 8'b11111111; Y = 8'b00000000; Z = 0; #5;
+        X = 8'b11111111; Y = 8'b11111111; Z = 0; #5;
         X = 8'b00000000; Y = 8'b00000000; Z = 1; #5;
-        X = 8'b00000000; Y = 8'b00000001; Z = 1; #5;
-        X = 8'b00000001; Y = 8'b00000000; Z = 1; #5;
-        X = 8'b00000001; Y = 8'b00000001; Z = 1; #5;
+        X = 8'b00000000; Y = 8'b11111111; Z = 1; #5;
+        X = 8'b11111111; Y = 8'b00000000; Z = 1; #5;
+        X = 8'b11111111; Y = 8'b11111111; Z = 1; #5;
 
         $finish;
     end
