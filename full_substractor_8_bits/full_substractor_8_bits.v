@@ -18,7 +18,6 @@ module estimulo_1_bit;
     r_c_1_bit substractor_1bit (X, Y, Z, D, B);
 
     initial begin
-        $display("x y z | D B");
         $monitor($time, ": X=%b, Y=%b, Z=%b, --- PRESTAMO=%b,RESTA=%b\n",X,Y,Z,B,D);
 
         // Stimulus inputs
@@ -80,7 +79,6 @@ module estimulo_8_bit;
     r_c_8_bit_subtractor substractor_8bits (X, Y, Z, D, B);
 
     initial begin
-        $display("X Y Z | D B");
         $monitor($time, ": X=%b, Y=%b, Z=%b, --- PRESTAMO=%b,RESTA=%b\n",X,Y,Z,B,D);
 
         // Combinaciones de entradas
