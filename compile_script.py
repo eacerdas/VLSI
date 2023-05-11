@@ -46,27 +46,36 @@ class FileSelector(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
         self.master = master
-        self.pack()
+        self.master.geometry("400x200")
+        self.master.configure(bg='#E0E0E0')
+        self.pack(fill='both', expand=True)
         self.create_widgets()
 
     def create_widgets(self):
         style = ttk.Style()
         style.theme_use('clam')
+        style.configure('TButton', font=('Arial', 14))
 
-        self.file_label = tk.Label(self, text="Select the file you want to compile:")
-        self.file_label.pack(side="left")
+        self.file_menu_text = tk.StringVar()
+        self.file_menu_text.set("Select file to compile")
+        self.file_menu = tk.OptionMenu(self, self.file_menu_text, "")
+        self.file_menu.config(width=40, padx=5, font=('Arial', 14))
+        self.file_menu.pack(side="top", anchor="w", padx=10, pady=10)
 
-        self.file_menu = tk.OptionMenu(self, tk.StringVar(), "")
-        self.file_menu.config(width=40, padx=5)
-        self.file_menu.pack(side="left")
-
-        self.file_menu['menu'].config(bg='#E0E0E0', fg='black')
+        self.file_menu['menu'].config(bg='#E0E0E0', fg='black', font=('Arial', 14))
         self.file_menu['menu'].config(activebackground='#0078D7', activeforeground='white')
 
         self.quit_button = ttk.Button(self, text="Open", command=self.master.destroy)
-        self.quit_button.pack(side="right")
+        self.quit_button.pack(side="right", padx=10, pady=10)
 
         self.update_file_list()
+
+        # Agregamos un nuevo widget para el fondo gris
+        self.bg_frame = tk.Frame(self.master, bg='#E0E0E0')
+        self.bg_frame.pack(fill='both', expand=True)
+
+        # Agregamos una nueva variable para guardar el valor del checkbox
+        self.generate_output = False
 
     def update_file_list(self):
         self.file_menu['menu'].delete(0, 'end')
@@ -76,17 +85,20 @@ class FileSelector(tk.Frame):
                     self.file_menu['menu'].add_command(label=os.path.join(root, v_file), command=lambda v=os.path.join(root, v_file): self.set_file(v))
 
     def set_file(self, v_file):
-        self.file_menu['text'] = v_file
         self.selected_file = v_file
+        self.update_file_menu_text(v_file)
+
+    def update_file_menu_text(self, v_file):
+        self.file_menu_text.set(os.path.basename(v_file))
+
+    # Agregamos un método para obtener el valor del checkbox
+    def get_generate_output(self):
+        self.generate_output = self.generate_output_var.get()
+        return self.generate_output
 
 
-# Parse command line arguments
-#parser = argparse.ArgumentParser(description="Compiles verilog")
-#parser.add_argument("filename", help="name of the file to copy")
-#args = parser.parse_args()
 
 num_verilog_files = count_files()
-
 
 print("DEBUG: Número de archivos .v en la carpeta actual y subdirectorios:", count_files())
 
@@ -98,7 +110,7 @@ if num_verilog_files > 1:
     root.mainloop()
 
     verilog_file_ubication = file_selector.selected_file
-    print(f"The selected file is: {verilog_file_ubication}")
+    print(f"\nThe selected file is: {verilog_file_ubication}\n")
 else: 
     #verilog_file_ubication = args.filename
     verilog_file_ubication = get_verilog_file()
@@ -188,7 +200,7 @@ if os.path.isfile(output_file_path):
 file_path = os.path.join(verilog_bin_directory, verilog_file_name)
 if os.path.isfile(file_path):
     os.remove(file_path)
-print(f"Removed \"{verilog_file_name}\" from {verilog_bin_directory}. It is no longer needed.")
+#print(f"Removed \"{verilog_file_name}\" from {verilog_bin_directory}. It is no longer needed.")
 
 # Find the generated VCD file
 vcd_file = None
@@ -213,7 +225,7 @@ vcd_file_path = os.path.join(verilog_bin_directory, vcd_file)
 os.chdir(gtkwave_bin_directory)
 
 # Run gtkwave with the VCD file
-vcd_abs_path = os.path.abspath(os.path.join(bin_dir_path, os.path.basename(vcd_file)))
+vcd_abs_path = os.path.abspath(os.path.join(verilog_bin_directory, os.path.basename(vcd_file))) # Change "verilog_bin_directory" for "bin_dir_path" if you are moving outputs to original directory
 gtkwave_command = f"gtkwave.exe {vcd_abs_path}"
 print(f"\n\nRunning GTKWave with command: {gtkwave_command}")
 if subprocess.call(gtkwave_command, shell=True) != 0:
