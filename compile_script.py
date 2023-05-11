@@ -174,12 +174,12 @@ if subprocess.call(vvp_command, shell=True) != 0:
 
 # Move the output file to a 'bin' directory inside the original directory and remove the files from the destination directory
 bin_dir_path = os.path.join(original_directory, "bin")
-if not os.path.exists(bin_dir_path):
-    os.makedirs(bin_dir_path)
+#if not os.path.exists(bin_dir_path):
+#    os.makedirs(bin_dir_path)
 output_file_path = os.path.join(verilog_bin_directory, filename_without_ext)
-if os.path.isfile(output_file_path):
-    shutil.move(output_file_path, os.path.join(bin_dir_path, filename_without_ext))
-print(f"Moved   \"{filename_without_ext}\" to {os.path.join(bin_dir_path)} successfully.")
+#if os.path.isfile(output_file_path):
+#    shutil.move(output_file_path, os.path.join(bin_dir_path, filename_without_ext))
+#print(f"Moved   \"{filename_without_ext}\" to {os.path.join(bin_dir_path)} successfully.")
 
 output_file_path = os.path.join(verilog_bin_directory, filename_without_ext)
 if os.path.isfile(output_file_path):
@@ -203,9 +203,9 @@ if vcd_file is None:
 
 # Move .vcd to to a 'bin' directory inside the original directory
 vcd_file_path = os.path.join(verilog_bin_directory, vcd_file)
-if os.path.isfile(vcd_file_path):
-    shutil.move(vcd_file_path, os.path.join(original_directory, "bin", os.path.basename(vcd_file)))
-    print(f"Moved \"{vcd_file}\" to {os.path.join(original_directory, 'bin')} successfully.")
+#if os.path.isfile(vcd_file_path):
+#    shutil.move(vcd_file_path, os.path.join(original_directory, "bin", os.path.basename(vcd_file)))
+#    print(f"Moved \"{vcd_file}\" to {os.path.join(original_directory, 'bin')} successfully.")
 
 ##### RUNNING GTKWAVE #####
 
