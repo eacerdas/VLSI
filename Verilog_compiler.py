@@ -161,7 +161,7 @@ def run_gtkwave(vcd_file_current_realpath_):
         os.chdir(gtkwave_bin_directory_realpath)
 
         # Run gtkwave with the VCD file
-        gtkwave_command = f"gtkwave.exe {vcd_file_current_realpath_}"
+        gtkwave_command = f'gtkwave.exe "{vcd_file_current_realpath_}"'
         print(f"\n\nRunning GTKWave with command: {gtkwave_command}")
         if subprocess.call(gtkwave_command, shell=True) != 0:
             print("Error: Failed to run GTKWave.")
