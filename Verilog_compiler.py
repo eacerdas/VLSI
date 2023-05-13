@@ -98,14 +98,14 @@ def find_file_with_extension(directory, extension):
         print(f"Error: No {extension} file found in {directory} directory.")
         exit()
 
-# 
-def get_output_folder_path(destiny_dir, name_of_folder):
+# Creates the folder for output if it does not exist. Returns the path 
+def get_output_folder_path(destiny_dir, name_of_new_folder):
         # Creates the output folder in the base dir
-        output_folder_path_ = os.path.join(destiny_dir, name_of_folder) 
-        if not os.path.exists(output_folder_path_):
-            os.makedirs(output_folder_path_)
+        new_folder_path = os.path.join(destiny_dir, name_of_new_folder) 
+        if not os.path.exists(new_folder_path):
+            os.makedirs(new_folder_path)
         
-        return output_folder_path_
+        return new_folder_path
 
 # Runs gtkwave using the file on base_directory/output_files
 def run_gtkwave(output_folder_path_):
@@ -164,30 +164,46 @@ class File_manager(tk.Frame):
         self.create_widgets()
 
     def create_widgets(self):
+        # Set up style for widgets
         style = ttk.Style()
         style.theme_use('clam')
-        style.configure('TButton', font=('Arial', 14))
+        style.configure('TButton', font=('Arial', 14), background='#E0E0E0')
 
+        # Set background color of main window to black
+        self.master.configure(bg='black')
+
+        # Create main frame that covers entire window
+        main_frame = tk.Frame(self, bg='#F0F0F0')
+        main_frame.pack(fill=tk.BOTH, expand=True)
+
+        # Create variable for file menu and set initial text to display
         self.file_menu_text = tk.StringVar()
         self.file_menu_text.set("Select file to compile")
-        self.file_menu = tk.OptionMenu(self, self.file_menu_text, "")
-        self.file_menu.config(width=40, padx=5, font=('Arial', 14))
+        
+        # Add observer link to watch for changes in file menu variable
+        self.file_menu_text.trace("w", self.update_button_state)
+
+        # Create dropdown menu for selecting files to compile
+        self.file_menu = tk.OptionMenu(main_frame, self.file_menu_text, "")
+        self.file_menu.config(width=40, padx=5, font=('Arial', 14), bg='#E0E0E0', fg='black')
         self.file_menu.pack(side="top", anchor="w", padx=10, pady=10)
-
         self.file_menu['menu'].config(bg='#E0E0E0', fg='black', font=('Arial', 14))
-        self.file_menu['menu'].config(activebackground='#0078D7', activeforeground='white')
+        self.file_menu['menu'].config(activebackground='#C0C0C0', activeforeground='blue')
 
-        self.quit_button = ttk.Button(self, text="Open", command=self.master.destroy)
+        # Create 'Open' button for starting file compilation
+        self.quit_button = ttk.Button(main_frame, text="Open", command=self.master.destroy, style='TButton')
         self.quit_button.pack(side="right", padx=10, pady=10)
+        self.quit_button['state'] = 'disabled'  # Initially, 'Open' button is disabled
 
+        # Update list of available files for file menu
         self.update_file_list()
 
-        # Agregamos un nuevo widget para el fondo gris
-        self.bg_frame = tk.Frame(self.master, bg='#E0E0E0')
-        self.bg_frame.pack(fill='both', expand=True)
-
-        # Agregamos una nueva variable para guardar el valor del checkbox
-        self.generate_output = False
+    def update_button_state(self, *args):
+        # Habilitar o deshabilitar el botón de Open según si se ha seleccionado un archivo válido
+        if self.file_menu_text.get() == "Select file to compile":
+            self.quit_button['state'] = 'disabled'
+        else:
+            self.quit_button['state'] = 'normal'
 
     def update_file_list(self):
         self.file_menu['menu'].delete(0, 'end')
@@ -203,10 +219,6 @@ class File_manager(tk.Frame):
     def update_file_menu_text(self, v_file):
         self.file_menu_text.set(os.path.basename(v_file))
 
-    # Agregamos un método para obtener el valor del checkbox
-    def get_generate_output(self):
-        self.generate_output = self.generate_output_var.get()
-        return self.generate_output
 
 # Global variables
 verilog_bin_directory = "C:/iverilog/bin"
