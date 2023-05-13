@@ -1,3 +1,8 @@
+##################################################
+#              Verilog Manager V1.0              #
+#              github.com/hardcodev              #
+##################################################
+
 import argparse
 import os
 import shutil
@@ -6,27 +11,34 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinter import ttk 
 
-# Counts the number of .v files under the current directory and sub directories 
-def count_files(): 
+# 
+def list_files_with_extension(extension, search_in_subdirs):
     count = 0
-    for root, dirs, files in os.walk(".", topdown=False):
-        for file in files:
-            if file.endswith(".v"):
-                count += 1
-    print("DEBUG: Número de archivos .v en la carpeta actual y subdirectorios:", count)
-    return count
-
-# returns the name of the .v file that is found under the current directory and sub directories useful when there is only one
-def find_verilog_file(): 
-    verilog_file = None
-    for root, dirs, files in os.walk(".", topdown=False):
-        for file in files:
-            if file.endswith(".v"):
-                verilog_file = file
-                break
-        if verilog_file is not None:
-            break
-    return verilog_file
+    if search_in_subdirs == 1: #Current dir and subdirs
+        found_files = {}
+        for root, dirs, files in os.walk(".", topdown=False):
+            for file in files:
+                if file.endswith(extension):
+                    count = count + 1
+                    file_path = os.path.join(root, file)
+                    found_files[file] = file_path
+        
+        if count > 1:
+            return found_files, count
+        elif count == 1:
+            single_found_file = found_files[next(iter(found_files))]
+            return single_found_file, count
+        elif count == 0:
+            print(f"Error: No {extension} file found in {directory} directory.")
+            exit()
+    
+    elif search_in_subdirs == 0: # only in current dir 
+        found_files = {}
+        for file in os.listdir('.'):
+            if file.endswith(extension):
+                file_path = os.path.join('.', file)
+                found_files[file] = file_path
+        return found_files
 
 # Cuts the .v extension at the end of the file name
 def get_file_basename(filename):
@@ -35,30 +47,30 @@ def get_file_basename(filename):
     return basename
 
 # Moves a file from origin to destiny. Checks if there is another file with the same name on destiny
-def copy_file(file_realpath, destiny_dir, filename):
+def copy_file(file_realpath, destiny_dir_realpath, filename):
 
         # Check if a file with the same name already exists in destination directory
         overwrite_flag = 0
-        if os.path.isfile(os.path.join(destiny_dir, filename)):
+        if os.path.isfile(os.path.join(destiny_dir_realpath, filename)):
             
             # If it exists, delete it to overwrite it
-            os.remove(os.path.join(destiny_dir, filename))
+            os.remove(os.path.join(destiny_dir_realpath, filename))
             overwrite_flag = 1
 
         # Copy the file to the destination directory
-        shutil.copy(file_realpath, destiny_dir)
+        shutil.copy(file_realpath, destiny_dir_realpath)
 
         # Print success message
         if overwrite_flag == 0:
-            print(f"Copied \"{filename}\" to {destiny_dir} in order to compile it. \n")
+            print(f"Copied \"{filename}\" to {destiny_dir_realpath} in order to compile it. \n")
         else:
-            print(f"Copied (overwritten) \"{filename}\" on {destiny_dir} in order to compile it. \n")
+            print(f"Copied (overwritten) \"{filename}\" on {destiny_dir_realpath} in order to compile it. \n")
 
 # Compiles the code with iverilog command
-def compile_verilog_file(verilog_bin_directory_, verilog_file_name_, verilog_file_name_without_ext_, base_directory_):
+def compile_verilog_file(verilog_bin_directory_realpath_, verilog_file_name_, verilog_file_name_without_ext_):
     
     # Change to the destination directory
-    os.chdir(verilog_bin_directory_)
+    os.chdir(verilog_bin_directory_realpath_)
 
     # Compile the Verilog code
     iverilog_command = f"iverilog.exe -o {verilog_file_name_without_ext_} {verilog_file_name_}"
@@ -68,13 +80,13 @@ def compile_verilog_file(verilog_bin_directory_, verilog_file_name_, verilog_fil
         exit()
     
     # Return to base directory
-    os.chdir(base_directory_)
+    os.chdir(base_directory_realpath)
 
 # Simulates the verilog code with vvp command
-def simulate_verilog_code_vvp(verilog_bin_directory_, verilog_file_name_without_ext_, base_directory_):
+def simulate_verilog_code_vvp(verilog_bin_directory_realpath_, verilog_file_name_without_ext_):
     
     # Change to the iverilog/bin directory
-    os.chdir(verilog_bin_directory_)
+    os.chdir(verilog_bin_directory_realpath_)
     
     # Simulate the Verilog code
     vvp_command = f"vvp {verilog_file_name_without_ext_}"
@@ -84,10 +96,11 @@ def simulate_verilog_code_vvp(verilog_bin_directory_, verilog_file_name_without_
         exit()
 
     # Return to base directory
-    os.chdir(base_directory_)
+    os.chdir(base_directory_realpath)
 
+# Looks for a file that ends with an extension into the directory we provide. For example: ".vcd"
 def find_file_with_extension(directory, extension):
-    # Find the generated VCD file
+
     found_file = None
     for file in os.listdir(directory):
         if file.endswith(extension):
@@ -99,7 +112,7 @@ def find_file_with_extension(directory, extension):
         exit()
 
 # Creates the folder for output if it does not exist. Returns the path 
-def get_output_folder_path(destiny_dir, name_of_new_folder):
+def get_output_folder_realpath(destiny_dir, name_of_new_folder):
         # Creates the output folder in the base dir
         new_folder_path = os.path.join(destiny_dir, name_of_new_folder) 
         if not os.path.exists(new_folder_path):
@@ -107,17 +120,36 @@ def get_output_folder_path(destiny_dir, name_of_new_folder):
         
         return new_folder_path
 
+# Moves the outputs (.vcd and verilog binary) to the base directory. Also removes them from the iverilog/bin dir
+def move_outputs_to_base_dir(verilog_bin_directory_realpath_, verilog_file_name_without_ext_, verilog_file_name_, output_folder_realpath_, vcd_file_name_):
+
+    # Move the output file to the base directory
+    verilog_output_file_path = os.path.join(verilog_bin_directory_realpath_, verilog_file_name_without_ext_)
+
+    if os.path.isfile(verilog_output_file_path):
+        shutil.move(verilog_output_file_path, os.path.join(output_folder_realpath_, verilog_file_name_without_ext_))
+    print(f"Moved   \"{verilog_file_name_without_ext_}\" to {output_folder_realpath_} successfully.")
+
+    # Remove the verilog file from iverilog/bin directory
+    verilog_temp_file_path = os.path.join(verilog_bin_directory_realpath_, verilog_file_name_)
+    if os.path.isfile(verilog_temp_file_path):
+        os.remove(verilog_temp_file_path)
+    #print(f"Removed \"{verilog_file_name_}\" from {verilog_bin_directory_realpath_}. It is no longer needed.")
+    
+    # Move .vcd to to a 'output_files' directory inside the base directory
+    vcd_file_path = os.path.join(verilog_bin_directory_realpath_, vcd_file_name_)
+    if os.path.isfile(vcd_file_path):
+        shutil.move(vcd_file_path, os.path.join(output_folder_realpath_, vcd_file_name_))
+        print(f"Moved \"{vcd_file_name_}\" to {output_folder_realpath_} successfully.")
+    
 # Runs gtkwave using the file on base_directory/output_files
-def run_gtkwave(output_folder_path_):
+def run_gtkwave(vcd_file_current_realpath_):
         
-        vcd_file_name = find_file_with_extension(output_folder_path_, ".vcd") # Find the generated VCD file
-        print(f"\n\nvcd_file: {vcd_file_name} \n\n")
         # Change to the gtkwave directory
-        os.chdir(gtkwave_bin_directory)
+        os.chdir(gtkwave_bin_directory_realpath)
 
         # Run gtkwave with the VCD file
-        vcd_abs_path = os.path.abspath(os.path.join(output_folder_path_, os.path.basename(vcd_file_name))) # Change "verilog_bin_directory" for "output_folder_path" if you are moving outputs to original directory
-        gtkwave_command = f"gtkwave.exe {vcd_abs_path}"
+        gtkwave_command = f"gtkwave.exe {vcd_file_current_realpath_}"
         print(f"\n\nRunning GTKWave with command: {gtkwave_command}")
         if subprocess.call(gtkwave_command, shell=True) != 0:
             print("Error: Failed to run GTKWave.")
@@ -125,33 +157,6 @@ def run_gtkwave(output_folder_path_):
 
         # Print success message
         print("GTKWave was run successfully.")
-
-# Moves the outputs (.vcd and verilog binary) to the base directory. Also removes them from the iverilog/bin dir
-def move_outputs_to_base_dir(verilog_bin_directory_, verilog_file_name_without_ext_, verilog_file_name_, output_folder_path_):
-
-    # Move the output file to the original directory
-    verilog_output_file_path = os.path.join(verilog_bin_directory_, verilog_file_name_without_ext_)
-
-    if os.path.isfile(verilog_output_file_path):
-        #shutil.move(verilog_output_file_path, os.path.join(output_folder_path_, verilog_file_name_without_ext_))
-        shutil.move(verilog_output_file_path, os.path.join(output_folder_path_, verilog_file_name_without_ext_))
-    print(f"Moved   \"{verilog_file_name_without_ext_}\" to {output_folder_path_} successfully.")
-
-    # Remove the verilog file from iverilog/bin directory
-    verilog_temp_file_path = os.path.join(verilog_bin_directory_, verilog_file_name_)
-    if os.path.isfile(verilog_temp_file_path):
-        os.remove(verilog_temp_file_path)
-    #print(f"Removed \"{verilog_file_name_}\" from {verilog_bin_directory_}. It is no longer needed.")
-
-    vcd_file_name = find_file_with_extension(verilog_bin_directory_, ".vcd") # Find the generated VCD file
-    
-    print(f"\n\nvcd_file: {vcd_file_name} \n\n")
-
-    # Move .vcd to to a 'output_files' directory inside the base directory
-    vcd_file_path = os.path.join(verilog_bin_directory_, vcd_file_name)
-    if os.path.isfile(vcd_file_path):
-        shutil.move(vcd_file_path, os.path.join(output_folder_path_, vcd_file_name))
-        print(f"Moved \"{vcd_file_name}\" to {output_folder_path_} successfully.")
 
 # Tkinter window to select the .v file we want to compile 
 class File_manager(tk.Frame):
@@ -221,30 +226,29 @@ class File_manager(tk.Frame):
 
 
 # Global variables
-verilog_bin_directory = "C:/iverilog/bin"
-gtkwave_bin_directory = "C:/iverilog/gtkwave/bin"
+base_directory_realpath = "" # Modified in main
+verilog_bin_directory_realpath = "C:/iverilog/bin"
+gtkwave_bin_directory_realpath = "C:/iverilog/gtkwave/bin"
 
 def main():
-
-    num_verilog_files = count_files()
+    
+    _, num_verilog_files_found = list_files_with_extension(".v", search_in_subdirs = 1)
+    print(f"\n\nnum_verilog_files_found: {num_verilog_files_found} \n\n")
 
     # Display a tkinter window if there is more than 1 .v file
-    if num_verilog_files > 1:
+    if num_verilog_files_found > 1:
         root = tk.Tk()
         root.title("Verilog file manager")
         file_selector = File_manager(root)
         root.mainloop()
 
         selected_verilog_file_relative_path = file_selector.selected_file
-        print(f"\nThe selected file is: {selected_verilog_file_relative_path}\n")
-    else: 
-        selected_verilog_file_relative_path = find_verilog_file()
+    
+    elif num_verilog_files_found == 1: 
+        selected_verilog_file_relative_path, _ = list_files_with_extension(".v", search_in_subdirs = 1)
 
     # Processing the name to use it later
     verilog_file_name = get_file_basename(selected_verilog_file_relative_path)
-
-    print(f"FLAG 1")
-
     verilog_file_name_without_ext = os.path.splitext(verilog_file_name)[0]
 
     # Get the verilog .v file's realpath
@@ -253,24 +257,28 @@ def main():
         print(f"The file {verilog_file_realpath} does not exist.")
         exit()
 
-    # Get the directory where the verilog file comes from
-    base_directory = os.path.dirname(verilog_file_realpath)
+    # Get the directory where the selected verilog file comes from
+    global base_directory_realpath
+    base_directory_realpath = os.path.dirname(verilog_file_realpath)
 
     # Moving the verilog file from the base dir to iverilog\bin to compile it
-    copy_file(verilog_file_realpath, verilog_bin_directory, verilog_file_name)
+    copy_file(verilog_file_realpath, verilog_bin_directory_realpath, verilog_file_name)
 
     # Compiling and simulating the verilog code
-    compile_verilog_file(verilog_bin_directory, verilog_file_name, verilog_file_name_without_ext, base_directory)
-    simulate_verilog_code_vvp(verilog_bin_directory, verilog_file_name_without_ext, base_directory)
+    compile_verilog_file(verilog_bin_directory_realpath, verilog_file_name, verilog_file_name_without_ext)
+    simulate_verilog_code_vvp(verilog_bin_directory_realpath, verilog_file_name_without_ext)
     
-    output_folder_path = get_output_folder_path(base_directory, "output_files")
+    vcd_file_name = find_file_with_extension(verilog_bin_directory_realpath, ".vcd") # Find the generated VCD file
 
-    print(f"folder path: {output_folder_path}")
+    output_folder_realpath = get_output_folder_realpath(base_directory_realpath, "output_files")
 
     # Moves the outputs (.vcd and verilog binary) to the base directory. Also removes them from the iverilog/bin dir
-    move_outputs_to_base_dir(verilog_bin_directory, verilog_file_name_without_ext, verilog_file_name, output_folder_path)
+    move_outputs_to_base_dir(verilog_bin_directory_realpath, verilog_file_name_without_ext, verilog_file_name, output_folder_realpath, vcd_file_name)
     
-    run_gtkwave(output_folder_path)
+    # Once the vcd is moved, lets get the realpath
+    vcd_file_current_realpath = os.path.abspath(os.path.join(output_folder_realpath, os.path.basename(vcd_file_name)))
+
+    run_gtkwave(vcd_file_current_realpath)
 
 
 # Ignore the lines below
