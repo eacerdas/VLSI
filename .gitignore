@@ -1,14 +1,3 @@
-# Ignore all
-*
+# Ignore binaries and vcd
+*output_files
 
-# Except .v files
-!*.v
-
-# Except .v files
-!*.gitignore
-
-# Except .v files
-!*.py
-
-# Except .bat files
-!*.bat
