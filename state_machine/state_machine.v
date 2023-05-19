@@ -127,8 +127,7 @@ module testbench;
     // Stimulus
     initial begin
 
-        #20; InputMSB <= 0; InputLSB <= 0; 
-        #20; InputMSB <= 0; InputLSB <= 0; 
+             InputMSB <= 0; InputLSB <= 0; 
         #20; InputMSB <= 1; InputLSB <= 1; 
         #20; InputMSB <= 1; InputLSB <= 0; 
         #20; InputMSB <= 0; InputLSB <= 0; 
